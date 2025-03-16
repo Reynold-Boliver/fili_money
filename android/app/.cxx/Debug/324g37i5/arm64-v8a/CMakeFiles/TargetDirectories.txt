@@ -1,0 +1,2 @@
+C:/Users/Reynold/fili-money/fili_money/android/app/.cxx/Debug/324g37i5/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/Reynold/fili-money/fili_money/android/app/.cxx/Debug/324g37i5/arm64-v8a/CMakeFiles/rebuild_cache.dir

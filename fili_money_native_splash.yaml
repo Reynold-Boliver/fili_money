@@ -1,0 +1,7 @@
+flutter_native_splash:
+
+  color: "#90d1a3"
+  image: assets/logos/fili_money.png
+  android: true
+  ios: true
+  web: false

@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "408956537274",
+    "firebase_url": "https://fili-money-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "fili-money",
+    "storage_bucket": "fili-money.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:408956537274:android:7d684eb3b89be9b9f93583",
+        "android_client_info": {
+          "package_name": "com.example.fili_money"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "408956537274-j32tljqtfg0stvjrjec8i75bij7bk8g2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fili_money",
+            "certificate_hash": "bbddb516f117ad4af4b60b4e193887fe4b907285"
+          }
+        },
+        {
+          "client_id": "408956537274-r9mffqgi6q13cpebgc0deqa5kbk4vgdf.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBqxT3y3xKrS1bWCNLpjKZPUc6uVfYJ0to"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "408956537274-r9mffqgi6q13cpebgc0deqa5kbk4vgdf.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "408956537274-2gr54sc5drrb5altf5elqnln9tbhqpi0.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.filiMoney"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
