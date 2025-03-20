@@ -220,15 +220,9 @@ class RegisterScreenState extends State<RegisterScreen> {
             ),
             SizedBox(height: 10),
             Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Spacer(),
-                CircularShadowButton(
-                  offset: Offset(15, 0),
-                  iconSize: 30,
-                  onPressed: () {},
-                  icon: LogoPainter.facebook(),
-                ),
-                SizedBox(width: 10),
                 CircularShadowButton(
                   offset: Offset(12.5, 2),
                   iconSize: 30,

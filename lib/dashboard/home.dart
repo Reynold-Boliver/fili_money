@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:fili_money/constants/finance_types.dart';
@@ -17,13 +18,36 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Firebase Database reference.
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
-  // Hard-coded UID; update as needed.
-  final String uid = "u23TowGWWzSYtpqDrFmfYMSRsuc2"; // must be the ui of the user currently logged in
+  // Variable to hold the current user's UID.
+  String? uid;
   // The currently selected date (defaults to current date).
   DateTime selectedDate = DateTime.now();
 
   @override
+  void initState() {
+    super.initState();
+    // Retrieve the current user's UID from FirebaseAuth.
+    uid = FirebaseAuth.instance.currentUser?.uid;
+    // Optionally, handle the case when the user is not logged in.
+    if (uid == null) {
+      // For example, navigate to a login screen or display a message.
+      // Navigator.pushReplacementNamed(context, '/login');
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // If the UID is not available, display a message.
+    if (uid == null) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text('My Finances', style: AppTextStyles.heading),
+          backgroundColor: AppPalette.teal.withAlpha(25),
+        ),
+        body: Center(child: Text("Please log in to view your finances.")),
+      );
+    }
+
     // Format year and month from the selected date.
     final String year = selectedDate.year.toString();
     final String month = selectedDate.month.toString().padLeft(2, '0');
