@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:fili_money/constants/finance_types.dart';
 import 'package:fili_money/theme/color.dart';
 import 'package:fili_money/theme/text_style.dart';
-import 'package:fili_money/widget/charts/radial_bar_pie.dart';
 import 'package:fili_money/widget/charts/horizontal_bar_chart.dart';
+import 'package:fili_money/widget/charts/radial_bar_pie.dart';
 import 'package:fili_money/widget/text_fields/month_textfield.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -18,8 +18,10 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   // Firebase Database reference.
   final DatabaseReference _databaseRef = FirebaseDatabase.instance.ref();
+
   // Variable to hold the current user's UID.
   String? uid;
+
   // The currently selected date (defaults to current date).
   DateTime selectedDate = DateTime.now();
 
@@ -28,10 +30,9 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
     // Retrieve the current user's UID from FirebaseAuth.
     uid = FirebaseAuth.instance.currentUser?.uid;
-    // Optionally, handle the case when the user is not logged in.
     if (uid == null) {
-      // For example, navigate to a login screen or display a message.
-      // Navigator.pushReplacementNamed(context, '/login');
+      // Handle the not-logged in case appropriately.
+      // For example, navigate to a login screen.
     }
   }
 
@@ -51,7 +52,16 @@ class _HomeScreenState extends State<HomeScreen> {
     // Format year and month from the selected date.
     final String year = selectedDate.year.toString();
     final String month = selectedDate.month.toString().padLeft(2, '0');
+
     // Build the database reference for the selected month and year.
+    // Expected structure:
+    // {
+    //   "expense": { <subtype>: value, ... },
+    //   "income": { <subtype>: value, ... },
+    //   "savings": <value>,
+    //   "totalExpense": <value>,   // Expense after all adjustments
+    //   "totalIncome": <value>     // Income after 20% deduction for savings
+    // }
     final DatabaseReference monthRef = _databaseRef.child('$uid/$year/$month');
 
     return Scaffold(
@@ -63,54 +73,83 @@ class _HomeScreenState extends State<HomeScreen> {
       body: StreamBuilder(
         stream: monthRef.onValue,
         builder: (context, AsyncSnapshot<DatabaseEvent> snapshot) {
-          // Check for errors.
+          // Error handling.
           if (snapshot.hasError) {
             return const Center(child: Text("Error loading data"));
           }
-          // While waiting for data, show a loader.
+          // Loading indicator.
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          // Extract data from the snapshot.
+          // Extract data from snapshot.
           final data = snapshot.data!.snapshot.value as Map?;
-          Map<String, dynamic> expenseMap = {};
-          Map<String, dynamic> incomeMap = {};
+          double totalIncome = 0;
+          double totalExpense = 0;
+          double savings = 0;
+
+          // Maps for income and expense subtypes.
+          Map<String, double> expenseSubtypesData = {};
+          Map<String, double> incomeSubtypesData = {};
 
           if (data != null) {
-            if (data['expense'] != null) {
-              expenseMap = Map<String, dynamic>.from(data['expense']);
+            // Retrieve stored totals.
+            if (data.containsKey('totalIncome')) {
+              totalIncome = (data['totalIncome'] as num).toDouble();
             }
-            if (data['income'] != null) {
-              incomeMap = Map<String, dynamic>.from(data['income']);
+            if (data.containsKey('totalExpense')) {
+              totalExpense = (data['totalExpense'] as num).toDouble();
+            }
+            if (data.containsKey('savings')) {
+              savings = (data['savings'] as num).toDouble();
+            }
+            // Retrieve expense subtypes.
+            if (data.containsKey('expense')) {
+              final expenseMap = Map<String, dynamic>.from(data['expense']);
+              expenseMap.forEach((key, value) {
+                expenseSubtypesData[key] = (value as num).toDouble();
+              });
+            }
+            // Retrieve income subtypes.
+            if (data.containsKey('income')) {
+              final incomeMap = Map<String, dynamic>.from(data['income']);
+              incomeMap.forEach((key, value) {
+                incomeSubtypesData[key] = (value as num).toDouble();
+              });
             }
           }
 
-          // Check if any financial data exists.
-          final bool hasData = expenseMap.isNotEmpty || incomeMap.isNotEmpty;
+          // Compute totals from subtypes.
+          final double computedExpenseTotal = expenseSubtypesData.values
+              .fold(0, (sum, element) => sum + element);
+          final double computedIncomeTotal = incomeSubtypesData.values
+              .fold(0, (sum, element) => sum + element);
 
-          // Parse expense data.
-          double totalExpense = 0;
-          Map<String, double> expenseData = {};
-          expenseMap.forEach((key, value) {
-            double amount = (value as num).toDouble();
-            expenseData[key] = amount;
-            totalExpense += amount;
+          // For doughnut charts, percentages will be based on these computed totals.
+          final Map<String, double> expensePercentageData = {};
+          expenseSubtypesData.forEach((key, value) {
+            final percentage = computedExpenseTotal > 0
+                ? (value / computedExpenseTotal * 100)
+                : 0;
+            expensePercentageData[key] =
+                double.parse(percentage.toStringAsFixed(2));
           });
 
-          // Parse income data.
-          double totalIncome = 0;
-          Map<String, double> incomeData = {};
-          incomeMap.forEach((key, value) {
-            double amount = (value as num).toDouble();
-            incomeData[key] = amount;
-            totalIncome += amount;
+          final Map<String, double> incomePercentageData = {};
+          incomeSubtypesData.forEach((key, value) {
+            final percentage = computedIncomeTotal > 0
+                ? (value / computedIncomeTotal * 100)
+                : 0;
+            incomePercentageData[key] =
+                double.parse(percentage.toStringAsFixed(2));
           });
 
           // Data for the horizontal bar chart.
           final List<BarData> chartData = [
-            BarData(label: 'Income', value: totalIncome, color: AppPalette.teal),
+            BarData(
+                label: 'Income', value: totalIncome, color: AppPalette.teal),
             BarData(label: 'Expense', value: totalExpense, color: Colors.red),
+            BarData(label: 'Savings', value: savings, color: Colors.blueAccent),
           ];
 
           return Padding(
@@ -130,8 +169,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                   ),
                   const SizedBox(height: 16.0),
-                  // If no data exists, display a message.
-                  if (!hasData)
+                  // Display message if no data available.
+                  if (totalIncome == 0 && totalExpense == 0 && savings == 0)
                     Padding(
                       padding: const EdgeInsets.only(bottom: 16.0),
                       child: Text(
@@ -141,23 +180,27 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     )
                   else ...[
-                    // Horizontal bar chart showing total income vs. expense.
+                    // Horizontal bar chart displaying totals.
                     SimpleHorizontalBarChart(
                       data: chartData,
                       title: 'Money Tracker',
                     ),
                     const SizedBox(height: 16.0),
-                    // Radial chart for expense breakdown.
-                    CustomRadialBarChart(
-                      title: 'Expense Summary',
-                      dataMap: expenseData,
+                    // Doughnut chart for expense subtype breakdown using computedExpenseTotal.
+                    CustomDoughnutChart(
+                      total: computedExpenseTotal,
+                      title: 'Expense Breakdown',
+                      dataMapAmount: expenseSubtypesData,
+                      dataMapPercentage: expensePercentageData,
                       colorMap: categoryExpenseColors,
                     ),
                     const SizedBox(height: 16.0),
-                    // Radial chart for income breakdown.
-                    CustomRadialBarChart(
-                      title: 'Income Summary',
-                      dataMap: incomeData,
+                    // Doughnut chart for income subtype breakdown using computedIncomeTotal.
+                    CustomDoughnutChart(
+                      total: computedIncomeTotal,
+                      title: 'Income Breakdown',
+                      dataMapAmount: incomeSubtypesData,
+                      dataMapPercentage: incomePercentageData,
                       colorMap: categoryIncomeColors,
                     ),
                     const SizedBox(height: 100.0),

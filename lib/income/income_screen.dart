@@ -41,9 +41,10 @@ class _IncomeScreenState extends State<IncomeScreen> {
   final FirebaseAuth auth = FirebaseAuth.instance;
   final User? user = FirebaseAuth.instance.currentUser;
 
-  // Default structure for RTDB.
-  // Both income and expense are defined so the overall structure is consistent.
+  // Updated default structure with totalIncome and savings fields.
   final Map<String, dynamic> defaultData = {
+    "totalIncome": 0.0,
+    "savings": 0.0, // 20% for each income will be allocated to savings
     "income": {
       "Earned Income": 0.0,
       "Passive Income": 0.0,
@@ -62,9 +63,9 @@ class _IncomeScreenState extends State<IncomeScreen> {
     setState(() {
       amountError = amountController.text.isEmpty ? 'Amount is required' : null;
       incomeTypeError =
-      incomeTypeController.text.isEmpty ? 'Income type is required' : null;
+          incomeTypeController.text.isEmpty ? 'Income type is required' : null;
       incomeDateError =
-      incomeDateController.text.isEmpty ? 'Income date is required' : null;
+          incomeDateController.text.isEmpty ? 'Income date is required' : null;
     });
   }
 
@@ -127,14 +128,14 @@ class _IncomeScreenState extends State<IncomeScreen> {
 
     // ----- Node Existence Verification in RTDB -----
     final rtdb.DatabaseReference yearRef =
-    rtdb.FirebaseDatabase.instance.ref("$uid/$year");
+        rtdb.FirebaseDatabase.instance.ref("$uid/$year");
     final rtdb.DatabaseEvent yearEvent = await yearRef.once();
     if (yearEvent.snapshot.value == null) {
       // Create year node with the month sub-node initialized with defaultData.
       await yearRef.set({month: defaultData});
     } else {
       final rtdb.DatabaseReference monthRef =
-      rtdb.FirebaseDatabase.instance.ref("$uid/$year/$month");
+          rtdb.FirebaseDatabase.instance.ref("$uid/$year/$month");
       final rtdb.DatabaseEvent monthEvent = await monthRef.once();
       if (monthEvent.snapshot.value == null) {
         await monthRef.set(defaultData);
@@ -149,9 +150,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
       messageDialog("Invalid income type", "Error");
       return;
     }
+    // Compute the savings allocation (20% of the amount).
+    double savingsAllocation = amount * 0.2;
+    // Compute the net income after deducting savings (80% of the amount).
+    double netIncome = amount - savingsAllocation;
 
     final rtdb.DatabaseReference monthRef =
-    rtdb.FirebaseDatabase.instance.ref("$uid/$year/$month");
+        rtdb.FirebaseDatabase.instance.ref("$uid/$year/$month");
     try {
       await monthRef.runTransaction((mutableData) {
         Map<String, dynamic> currentData;
@@ -160,12 +165,26 @@ class _IncomeScreenState extends State<IncomeScreen> {
         } else {
           currentData = Map<String, dynamic>.from(mutableData as Map);
         }
+
+        // Update the specific income category with the full amount.
         if (currentData["income"].containsKey(incomeCategory)) {
-          double currentVal = (currentData["income"][incomeCategory] as num).toDouble();
+          double currentVal =
+              (currentData["income"][incomeCategory] as num).toDouble();
           currentData["income"][incomeCategory] = currentVal + amount;
         } else {
           throw Exception("Invalid income category");
         }
+
+        // Update total income with only the net income (i.e. amount after savings deduction).
+        double currentTotal =
+            (currentData["totalIncome"] as num?)?.toDouble() ?? 0.0;
+        currentData["totalIncome"] = currentTotal + netIncome;
+
+        // Update the savings field with the allocated savings amount.
+        double currentSavings =
+            (currentData["savings"] as num?)?.toDouble() ?? 0.0;
+        currentData["savings"] = currentSavings + savingsAllocation;
+
         mutableData = currentData;
         return rtdb.Transaction.success(mutableData);
       });
@@ -180,7 +199,7 @@ class _IncomeScreenState extends State<IncomeScreen> {
     // Structure: history → document: uid → field: timestamp → { "type": "income", ... }
     final String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
     final DocumentReference userDoc =
-    FirebaseFirestore.instance.collection('history').doc(uid);
+        FirebaseFirestore.instance.collection('history').doc(uid);
     Map<String, dynamic> incomeRecord = Map<String, dynamic>.from(data);
     incomeRecord["type"] = "income";
 
@@ -211,10 +230,13 @@ class _IncomeScreenState extends State<IncomeScreen> {
                 fieldName: 'Amount',
                 controller: amountController,
                 errorMessage: amountError,
-                inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+                ],
               ),
               const SizedBox(height: 12),
               CustomDropdownSearch(
+                hint: 'Income Type',
                 categories: incomeCategories,
                 categoryColors: categoryIncomeColors,
                 controller: incomeTypeController,

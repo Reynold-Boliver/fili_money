@@ -1,3 +1,4 @@
+import 'package:fili_money/developers/developer_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -9,13 +10,11 @@ import '../theme/text_style.dart';
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
-  // ignore: library_private_types_in_public_api
   @override
   ProfileScreenState createState() => ProfileScreenState();
 }
 
 class ProfileScreenState extends State<ProfileScreen> {
-  // Helper method to build a container for each user data field.
   Widget _buildUserDataField({
     required BuildContext context,
     required String label,
@@ -44,14 +43,7 @@ class ProfileScreenState extends State<ProfileScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Label at the top.
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppPalette.teal,
-              fontSize: 14,
-            ),
-          ),
+          Text(label, style: const TextStyle(color: AppPalette.teal, fontSize: 14)),
           Row(
             children: [
               Expanded(
@@ -64,7 +56,6 @@ class ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
               ),
-              // Only show edit icon if onEdit is provided.
               if (onEdit != null)
                 IconButton(
                   icon: const Icon(Icons.edit_rounded, color: AppPalette.teal),
@@ -77,7 +68,6 @@ class ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // Dialog for editing a single field (Address, Age, etc.)
   Future<void> _showSingleFieldEditDialog({
     required BuildContext context,
     required String title,
@@ -85,149 +75,113 @@ class ProfileScreenState extends State<ProfileScreen> {
     required String fieldKey,
     required String userId,
   }) async {
-    final TextEditingController controller =
-        TextEditingController(text: currentValue);
+    final TextEditingController controller = TextEditingController(text: currentValue);
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(
-          "Edit $title",
-          style: const TextStyle(color: AppPalette.teal),
-        ),
-        content: TextField(
-          controller: controller,
-          decoration: InputDecoration(
-            labelText: title,
-            labelStyle: const TextStyle(color: AppPalette.teal),
+        title: Text("Edit $title", style: const TextStyle(color: AppPalette.teal)),
+        content: SingleChildScrollView(
+          child: TextField(
+            controller: controller,
+            decoration: InputDecoration(
+              labelText: title,
+              labelStyle: const TextStyle(color: AppPalette.teal),
+            ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Cancel", style: TextStyle(color: AppPalette.teal)),
           ),
           TextButton(
             onPressed: () async {
               final newValue = controller.text.trim();
               if (newValue.isNotEmpty && newValue != currentValue) {
-                // Update the Firestore document with the new value.
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .update({fieldKey: newValue});
+                await FirebaseFirestore.instance.collection('users').doc(userId).update({fieldKey: newValue});
               }
-              // ignore: use_build_context_synchronously
               if (!mounted) return;
-              // ignore: use_build_context_synchronously
               Navigator.of(context).pop();
             },
-            child: const Text(
-              "Save",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Save", style: TextStyle(color: AppPalette.teal)),
           ),
         ],
       ),
     );
   }
 
-  // Dialog for editing the name (first and last name)
   Future<void> _showNameEditDialog({
     required BuildContext context,
     required String currentFirstName,
     required String currentLastName,
     required String userId,
   }) async {
-    final TextEditingController firstNameController =
-        TextEditingController(text: currentFirstName);
-    final TextEditingController lastNameController =
-        TextEditingController(text: currentLastName);
+    final firstNameController = TextEditingController(text: currentFirstName);
+    final lastNameController = TextEditingController(text: currentLastName);
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
-          "Edit Name",
-          style: TextStyle(color: AppPalette.teal),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: firstNameController,
-              decoration: const InputDecoration(
-                labelText: "First Name",
-                labelStyle: TextStyle(color: AppPalette.teal),
+        title: const Text("Edit Name", style: TextStyle(color: AppPalette.teal)),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: firstNameController,
+                decoration: const InputDecoration(
+                  labelText: "First Name",
+                  labelStyle: TextStyle(color: AppPalette.teal),
+                ),
               ),
-            ),
-            TextField(
-              controller: lastNameController,
-              decoration: const InputDecoration(
-                labelText: "Last Name",
-                labelStyle: TextStyle(color: AppPalette.teal),
+              TextField(
+                controller: lastNameController,
+                decoration: const InputDecoration(
+                  labelText: "Last Name",
+                  labelStyle: TextStyle(color: AppPalette.teal),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Cancel", style: TextStyle(color: AppPalette.teal)),
           ),
           TextButton(
             onPressed: () async {
               final newFirstName = firstNameController.text.trim();
               final newLastName = lastNameController.text.trim();
-              if (newFirstName.isNotEmpty &&
-                  newLastName.isNotEmpty &&
-                  (newFirstName != currentFirstName ||
-                      newLastName != currentLastName)) {
-                // Update both the firstName and lastName fields.
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .update({
+              if (newFirstName.isNotEmpty && newLastName.isNotEmpty &&
+                  (newFirstName != currentFirstName || newLastName != currentLastName)) {
+                await FirebaseFirestore.instance.collection('users').doc(userId).update({
                   'firstName': newFirstName,
                   'lastName': newLastName,
                 });
               }
-              // ignore: use_build_context_synchronously
               if (!mounted) return;
-              // ignore: use_build_context_synchronously
               Navigator.of(context).pop();
             },
-            child: const Text(
-              "Save",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Save", style: TextStyle(color: AppPalette.teal)),
           ),
         ],
       ),
     );
   }
 
-  // Dialog for adding profile data when none exists.
   Future<void> _showAddProfileDialog({
     required BuildContext context,
     required String userId,
   }) async {
-    final TextEditingController firstNameController = TextEditingController();
-    final TextEditingController lastNameController = TextEditingController();
-    final TextEditingController addressController = TextEditingController();
-    final TextEditingController ageController = TextEditingController();
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final addressController = TextEditingController();
+    final ageController = TextEditingController();
 
     await showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text(
-          "Add Profile Information",
-          style: TextStyle(color: AppPalette.teal),
-        ),
+        title: const Text("Add Profile Information", style: TextStyle(color: AppPalette.teal)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -267,10 +221,7 @@ class ProfileScreenState extends State<ProfileScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text(
-              "Cancel",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Cancel", style: TextStyle(color: AppPalette.teal)),
           ),
           TextButton(
             onPressed: () async {
@@ -278,15 +229,8 @@ class ProfileScreenState extends State<ProfileScreen> {
               final lastName = lastNameController.text.trim();
               final address = addressController.text.trim();
               final ageText = ageController.text.trim();
-              if (firstName.isNotEmpty &&
-                  lastName.isNotEmpty &&
-                  address.isNotEmpty &&
-                  ageText.isNotEmpty) {
-                // Save the new profile data to Firestore.
-                await FirebaseFirestore.instance
-                    .collection('users')
-                    .doc(userId)
-                    .set({
+              if (firstName.isNotEmpty && lastName.isNotEmpty && address.isNotEmpty && ageText.isNotEmpty) {
+                await FirebaseFirestore.instance.collection('users').doc(userId).set({
                   'firstName': firstName,
                   'lastName': lastName,
                   'email': FirebaseAuth.instance.currentUser?.email ?? "",
@@ -294,15 +238,10 @@ class ProfileScreenState extends State<ProfileScreen> {
                   'age': int.tryParse(ageText) ?? 0,
                 });
               }
-              // ignore: use_build_context_synchronously
               if (!mounted) return;
-              // ignore: use_build_context_synchronously
               Navigator.of(context).pop();
             },
-            child: const Text(
-              "Save",
-              style: TextStyle(color: AppPalette.teal),
-            ),
+            child: const Text("Save", style: TextStyle(color: AppPalette.teal)),
           ),
         ],
       ),
@@ -313,31 +252,23 @@ class ProfileScreenState extends State<ProfileScreen> {
     if (mounted) {
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (context) => const LoginScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Get the currently signed-in user.
     final User? user = FirebaseAuth.instance.currentUser;
 
     if (user == null) {
-      // If there is no logged-in user, display a message.
       return Scaffold(
         appBar: AppBar(title: const Text('Profile')),
         body: const Center(child: Text('No user is currently signed in.')),
       );
     }
 
-    // Create a stream of the user document from Firestore.
-    final userDocStream = FirebaseFirestore.instance
-        .collection('users')
-        .doc(user.uid)
-        .snapshots();
+    final userDocStream = FirebaseFirestore.instance.collection('users').doc(user.uid).snapshots();
 
     return Scaffold(
       appBar: AppBar(
@@ -358,12 +289,9 @@ class ProfileScreenState extends State<ProfileScreen> {
         stream: userDocStream,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
 
-          // If no data is found, prompt the user to add their profile information.
           if (!snapshot.hasData || !snapshot.data!.exists) {
             return Center(
               child: Column(
@@ -389,7 +317,6 @@ class ProfileScreenState extends State<ProfileScreen> {
             );
           }
 
-          // Extract Firestore data.
           final userData = snapshot.data!.data() as Map<String, dynamic>;
           final firstName = userData['firstName'] ?? '';
           final lastName = userData['lastName'] ?? '';
@@ -402,18 +329,14 @@ class ProfileScreenState extends State<ProfileScreen> {
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // Profile picture.
                   CircleAvatar(
                     radius: 50,
                     backgroundImage: googlePhotoUrl != null
                         ? NetworkImage(googlePhotoUrl)
-                        : const AssetImage('assets/placeholder_avatar.png')
-                            as ImageProvider,
+                        : const AssetImage('assets/placeholder_avatar.png') as ImageProvider,
                   ),
                   const SizedBox(height: 20),
-                  // Container for the "Name" field.
                   _buildUserDataField(
                     context: context,
                     label: 'Name',
@@ -427,14 +350,11 @@ class ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  // Container for the "Email" field.
                   _buildUserDataField(
                     context: context,
                     label: 'Email',
                     value: email,
-                    onEdit: null,
                   ),
-                  // Container for the "Address" field.
                   _buildUserDataField(
                     context: context,
                     label: 'Address',
@@ -449,7 +369,6 @@ class ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
-                  // Container for the "Age" field.
                   _buildUserDataField(
                     context: context,
                     label: 'Age',
@@ -464,6 +383,27 @@ class ProfileScreenState extends State<ProfileScreen> {
                       );
                     },
                   ),
+                  const SizedBox(height: 40),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Get to know us '),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) =>  DeveloperScreen()),
+                          );
+                        },
+                        child: const Text(
+                          "Developers",
+                          style: TextStyle(color: AppPalette.teal, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                   SizedBox(height: 60),
+
                 ],
               ),
             ),
