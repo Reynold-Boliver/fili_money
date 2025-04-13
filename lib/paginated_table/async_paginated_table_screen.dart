@@ -87,7 +87,6 @@ class AsyncPaginatedTableScreenState extends State<AsyncPaginatedTableScreen> {
 
   Future<void> _generatePdf() async {
     final pdf = pw.Document();
-    // todo check if there is no data from both income and expense on the tabl, then show user there is no data to be printed
     // Helper function to safely convert a value to double.
     double parseAmount(dynamic value) {
       if (value is num) return value.toDouble();
@@ -101,6 +100,18 @@ class AsyncPaginatedTableScreenState extends State<AsyncPaginatedTableScreen> {
         await _expenseDataSource.getAllRecords();
     final List<Map<String, dynamic>> incomeRecords =
         await _incomeDataSource.getAllRecords();
+
+    // NEW: Check that both expense and income records are available.
+    if (expenseRecords.isEmpty || incomeRecords.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Both expense and income data must be available to generate the report.",
+          ),
+        ),
+      );
+      return;
+    }
 
     // Prepare table data for Income.
     final incomeTableHeaders = ['Date', 'Type', 'Amount'];
@@ -126,12 +137,7 @@ class AsyncPaginatedTableScreenState extends State<AsyncPaginatedTableScreen> {
               : expense['receiptNumber'].toString();
       return [formattedDate, name, type, amount, receipt];
     }).toList();
-    if (expenseRecords.isEmpty && incomeRecords.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("No data available to print.")),
-      );
-      return;
-    }
+
     // -------------------------------------------------------------------------
     // PAGE 1: Show Income and Expense Tables.
     pdf.addPage(
