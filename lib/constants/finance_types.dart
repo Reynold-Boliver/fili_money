@@ -16,7 +16,6 @@ final Map<String, String> expenseCategories = const {
   'Childcare': 'Essential',
   'Transportation': 'Necessary',
   'Debt Payments': 'Necessary',
-  'Savings' : 'Savings',
   'Investments': 'Necessary',
   'Insurance (Beyond Home & Auto)': 'Necessary',
   'Personal Care & Well-being': 'Discretionary',
