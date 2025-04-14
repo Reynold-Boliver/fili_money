@@ -90,7 +90,7 @@ class PrimaryButtonState extends State<PrimaryButton>
         height: 70,
         decoration: BoxDecoration(
           color: widget.isFilled ? widget.color : Colors.transparent,
-          border: Border.all(color: widget.color),
+          border: Border.all(color: widget.color, width: 2),
           borderRadius: BorderRadius.circular(12),
         ),
         child: InkWell(

@@ -5,6 +5,7 @@ const Map<String, Color> categoryExpenseColors = {
   'Necessary': Colors.orange,
   'Discretionary': Colors.redAccent,
   'Luxury': Colors.blueAccent,
+  'Savings' : Colors.yellow
 };
 
 final Map<String, String> expenseCategories = const {
@@ -15,7 +16,7 @@ final Map<String, String> expenseCategories = const {
   'Childcare': 'Essential',
   'Transportation': 'Necessary',
   'Debt Payments': 'Necessary',
-  'Savings & Investments': 'Necessary',
+  'Investments': 'Necessary',
   'Insurance (Beyond Home & Auto)': 'Necessary',
   'Personal Care & Well-being': 'Discretionary',
   'Clothing': 'Discretionary',

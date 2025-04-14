@@ -93,6 +93,10 @@ flutter:
     - assets/icons/expense.svg
     - assets/fili-splash.gif
     - assets/icons/table.svg
+    - assets/img/ayeza.jpg
+    - assets/img/dexter.jpg
+    - assets/img/erica.jpg
+    - assets/img/maria_lous.jpg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

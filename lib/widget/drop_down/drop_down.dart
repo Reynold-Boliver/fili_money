@@ -4,6 +4,7 @@ import 'package:fili_money/theme/color.dart';
 import 'package:string_similarity/string_similarity.dart';
 
 class CustomDropdownSearch extends StatefulWidget {
+  final String hint;
   final String? errorMessage;
   final TextEditingController controller;
 
@@ -18,7 +19,7 @@ class CustomDropdownSearch extends StatefulWidget {
     required this.controller,
     this.errorMessage,
     required this.categories,
-    required this.categoryColors,
+    required this.categoryColors, required this.hint,
   });
 
   @override
@@ -92,7 +93,7 @@ class _CustomDropdownSearchState extends State<CustomDropdownSearch> {
         Padding(
           padding: const EdgeInsets.only(left: 8.0),
           child: Text(
-            'Expense Type',
+            widget.hint,
             style: const TextStyle(
               color: AppPalette.teal,
               fontSize: 16,
